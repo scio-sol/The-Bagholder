@@ -37,6 +37,7 @@ contract Bagholder {
         waitTime = _waitTime;
     }
 
+    // The initial bet goes fully to the dev, I think...
     function start() payable public {
         require (bet == 0 || timestamp < block.timestamp);
         require (msg.value == initialBet);
@@ -46,11 +47,12 @@ contract Bagholder {
         timestamp = uint96(block.timestamp) + waitTime;
     }
 
+    // Extract a fee of 1% and send the rest to the former king.
     function climbUp() payable public {
         require (bet != 0 && timestamp > block.timestamp);
         require (msg.value == bet * multiplier);
 
-        uint256 toPay = bet * 99 / 100;
+        uint256 toPay = msg.value * 99 / 100;
         address payable to = payable(kingOfTheHill);
 
         bet = msg.value;
@@ -60,12 +62,10 @@ contract Bagholder {
         to.transfer(toPay);
     }
 
+    // We don't ever need to save money for payouts, because we always
+    // pay with what we're paid
     function getDevMoney() payable public {
         require(msg.sender == dev);
-        if(bet == 0 || timestamp < block.timestamp) {
-            payable(dev).transfer(address(this).balance);
-        } else {
-            payable(dev).transfer(address(this).balance - bet);
-        }
+        payable(dev).transfer(address(this).balance);
     }
 }
